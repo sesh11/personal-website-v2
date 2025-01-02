@@ -1,0 +1,103 @@
+/* Container */
+.aboutme-container {
+    text-align: left;
+    color: black;
+    font-family: 'Terminal', monospace;
+    font-size: 16px;
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 40px 20px;
+    line-height: 1.5;
+/* 
+    font-family:'Helvetica', 'Arial', sans-serif;
+    color: #000;
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 40px 20px;
+    line-height: 1.5;
+  } */
+}
+
+  /* Header */
+  .aboutme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 50px;
+  }
+  
+  .aboutme-brand {
+    font-size: 20px;
+    font-weight: 700;
+    background-color: white;
+    color: black;
+  }
+  
+  .aboutme-nav a {
+    margin-left: 20px;
+    text-decoration: none;
+    font-weight: 700;
+    background-color: white;
+    color: black;
+    /* color: #000; */
+    font-size: 16 px;
+  }
+  
+  /* Title */
+  .aboutme-title {
+    font-size: 48px;
+    font-weight: 400;
+    margin: 30px 0;
+  }
+  
+  /* Main Content */
+  .aboutme-main {
+    margin-bottom: 100px;
+  }
+  
+  /* Image */
+  .aboutme-image-container {
+    margin: 20px 0;
+  }
+  
+  .aboutme-image {
+    width: 70%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  /* Sections */
+  .aboutme-section {
+    margin-top: 40px;
+  }
+  
+  .aboutme-section-title {
+    font-size: 24px;
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+  
+  .aboutme-placeholder {
+    font-size: 16px;
+    color: #555;
+  }
+  
+  /* Bottom Links */
+  .aboutme-links {
+    margin-top: 100px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .aboutme-link-row {
+    display: flex;
+    justify-content: space-between;
+    max-width: 200px;
+  }
+  
+  .aboutme-platform {
+    font-weight: 600;
+  }
+  
