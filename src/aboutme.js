@@ -59,8 +59,10 @@ function AboutMe() {
 
         {/* Bio Section */}
         <section className="aboutme-section">
-          {/* <h2 className="aboutme-section-title">Bio</h2> */}
-          <p className="aboutme-placeholder">&lt;Insert&gt;</p>
+          <DynamicContent
+            bucketPath="about/bio.md"
+            contentType="text/markdown"
+          />  
         </section>
 
         {/* Work Experience Section */}
