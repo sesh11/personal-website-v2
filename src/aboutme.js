@@ -2,6 +2,7 @@ import React, { useState, useEffect} from 'react';
 import './aboutme.css'; // <-- Import the AboutMe.css file here
 import Header from './header'; // <-- Import the header component here
 import Footer from './footer'; // <-- Import the footer component here
+import DynamicContent from './DynamicComponent';
 // import roshiimage from './assets/roshit_kamehameha.jpeg';
  
 
