@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const DynamicContent = ({ bucketPath, contentType }) => {
   const [content, setContent] = useState(null);
@@ -40,14 +41,12 @@ const DynamicContent = ({ bucketPath, contentType }) => {
 
   return (
     <div className="prose max-w-none">
-      {contentType === 'markdown' ? (
-        <div dangerouslySetInnerHTML={{ __html: content.htmlContent }} />
-      ) : (
-        <pre className="p-4 bg-gray-100 rounded overflow-x-auto">
-          {JSON.stringify(content, null, 2)}
-        </pre>
-      )}
-    </div>
+    {contentType === 'markdown' ? (
+      <ReactMarkdown>{content}</ReactMarkdown>
+    ) : (
+      <pre>{content}</pre>
+    )}
+  </div>
   );
 };
 
