@@ -62,7 +62,7 @@ function AboutMe() {
         <section className="aboutme-section">
           <DynamicContent
             bucketPath="about/bio.md"
-            contentType="text/markdown"
+            contentType="markdown"
           />  
         </section>
 
