@@ -11,7 +11,7 @@ const DynamicContent = ({ bucketPath, contentType }) => {
         const response = await fetch(`/api/content?path=${bucketPath}&type=${contentType}`);
         if (!response.ok) throw new Error('Content fetch failed');
         const data = await response.json();
-        setContent(data);
+        setContent(data.content);
       } catch (err) {
         setError(err.message);
       } finally {
