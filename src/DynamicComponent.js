@@ -9,13 +9,9 @@ const DynamicContent = ({ bucketPath, contentType }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        console.log('ENV:', process.env.REACT_APP_API_ENDPOINT);
-        console.log('Path & Type:', bucketPath, contentType);
         const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/content?path=${bucketPath}&type=${contentType}`);
-        console.log('Response:', response);
         if (!response.ok) throw new Error('Content fetch failed');
         const data = await response.json();
-        console.log('Data:', data);
         setContent(data.content);
       } catch (err) {
         setError(err.message);

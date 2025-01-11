@@ -11,7 +11,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/aboutme" element={<AboutMe />} />
+        <Route path="/" element={<AboutMe />} />
         <Route path="/notebook" element={<Notebook />} />
         <Route path="/article/:id" element={<Article />} />
         <Route path="/admin" element={<AdminPanel />} />
