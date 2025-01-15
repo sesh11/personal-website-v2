@@ -5,8 +5,8 @@
     font-family: 'Courier Prime', 'American Typewriter', 'Courier New', monospace;
     font-size: 16px;
     margin: 0 auto;
-    max-width: 800px;
-    padding: 40px 20px;
+    max-width: 1200px;
+    padding: 20px;
     line-height: 1.5;
     /* background-color: #FAF6F1; */
 /* 
@@ -37,6 +37,7 @@
   .aboutme-nav {
     display: flex;
     justify-content: flex-end;  /* This will right-align the navigation items */
+    width: 100%;
   }
   
   .aboutme-nav a {
@@ -46,7 +47,7 @@
     background-color: white;
     color: black;
     /* color: #000; */
-    font-size: 16 px;
+    font-size: 16px;
   }
   
   /* Title */
