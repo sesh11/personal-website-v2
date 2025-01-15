@@ -33,6 +33,11 @@
     background-color: white;
     color: black;
   }
+
+  .aboutme-nav {
+    display: flex;
+    justify-content: flex-end;  /* This will right-align the navigation items */
+  }
   
   .aboutme-nav a {
     margin-left: 20px;
