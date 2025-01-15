@@ -11,7 +11,7 @@ function Header() {
         <Link to="/readinglist">Reading List</Link>
         <Link to="/projects">Projects</Link>
         <Link to="/notebook">Notebook</Link>
-        <Link to="/">Profile</Link>
+        <Link to="/">ABOUT</Link>
         {/* <a href="#readinglist">Reading List</a>
         <a href="#projects">Projects</a>
         <a href="#notebook">Notebook</a>
