@@ -1,3 +1,15 @@
+/* or App.css */
+html, 
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    background-color: #faf6f1;
+    min-height: 100vh;
+    width: 100%;
+}
+
+
 .App {
   text-align: center;
   background-color: black;

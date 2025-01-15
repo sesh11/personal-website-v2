@@ -40,11 +40,29 @@ function AboutMe() {
       <main className="aboutme-main">
         {/* Bio Section */}
         <section className="aboutme-section">
+          <h2 className="aboutme-section-title">ABOUT ME</h2>
           <DynamicContent
             bucketPath="about/bio.md"
             contentType="markdown"
           />  
         </section>
+
+        <section className="aboutme-section">
+          <h2 className="aboutme-section-title">PROFESSIONAL</h2>
+          <DynamicContent
+            bucketPath="about/professional.md"
+            contentType="markdown"
+          />  
+        </section>
+        
+        <section className="aboutme-section">
+          <h2 className="aboutme-section-title">PERSONAL</h2>
+          <DynamicContent
+            bucketPath="about/personal.md"
+            contentType="markdown"
+          />  
+        </section>
+
 
         {/* Bottom Links */}
         <Footer />

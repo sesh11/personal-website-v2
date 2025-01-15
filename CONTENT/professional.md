@@ -1,0 +1,1 @@
+I'm a technology executive at a healthcare company. I lead a team of engineers and consultants to deliver innovative solutions and drive transformative experiences with Cloud and AI. Prior to this, I was a consultant focused on modernizing legacy systems and building new platforms and products for healthcare and government clients. 
