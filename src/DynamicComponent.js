@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-const DynamicContent = ({ bucketPath, contentType }) => {
+const DynamicContent = ({ bucketPath, contentType, render }) => {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,14 +39,20 @@ const DynamicContent = ({ bucketPath, contentType }) => {
     );
   }
 
+  // If a render prop is provided, use it for custom rendering
+  if (render) {
+    return render(content);
+  }
+
+  // Default rendering
   return (
     <div className="prose max-w-none">
-    {contentType === 'markdown' ? (
-      <ReactMarkdown>{content}</ReactMarkdown>
-    ) : (
-      <pre>{content}</pre>
-    )}
-  </div>
+      {contentType === 'markdown' ? (
+        <ReactMarkdown>{content}</ReactMarkdown>
+      ) : (
+        <pre>{content}</pre>
+      )}
+    </div>
   );
 };
 

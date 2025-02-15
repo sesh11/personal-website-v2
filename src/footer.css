@@ -1,0 +1,29 @@
+.footer-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 0;
+  margin-top: 2rem;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  transition: all 0.3s ease;
+  color: #374151;
+}
+
+.social-link:hover {
+  transform: translateY(-2px);
+  background-color: #e5e7eb;
+}
+
+.social-link svg {
+  width: 24px;
+  height: 24px;
+} 
