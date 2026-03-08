@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #faf6f1;
+  --color-text: #2c2c2c;
+  --color-text-muted: #555555;
+  --font-family-mono: 'Courier Prime', 'American Typewriter', 'Courier New', monospace;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.prose {
+  line-height: 1.7;
+}
+
+.prose p {
+  margin: 1em 0;
+}
+
+.prose a {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+}
+
+.prose code {
+  background-color: #e5e5e5;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
