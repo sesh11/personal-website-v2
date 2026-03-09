@@ -2,10 +2,16 @@ name: Deploy Site
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'infra/**'
-      - 'scripts/**'
-      - '.claude/**'
+    paths:
+      - 'src/**'
+      - 'content/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'next.config.js'
+      - 'tailwind.config.ts'
+      - 'tsconfig.json'
+      - 'postcss.config.mjs'
 
 permissions:
   id-token: write
