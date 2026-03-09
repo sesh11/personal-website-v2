@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths-ignore:
       - 'infra/**'
+      - 'scripts/**'
+      - '.claude/**'
 
 permissions:
   id-token: write
