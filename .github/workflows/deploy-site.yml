@@ -1,0 +1,46 @@
+name: Deploy Site
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'infra/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync content from Notion
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: npx tsx scripts/notion-sync.ts
+
+      - run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::445567084763:role/GitHubActionsDeployRole
+          aws-region: us-east-1
+
+      - name: Sync to S3
+        run: aws s3 sync out/ s3://www.nsesh.com --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1UBO5L839D2UN \
+            --paths "/*"
