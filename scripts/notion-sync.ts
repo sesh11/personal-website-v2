@@ -51,16 +51,12 @@ async function syncNotionToMarkdown() {
 
   console.log(`Found ${response.results.length} published post(s)`)
 
-  // Clear existing posts — Notion is the sole source of truth
-  if (fs.existsSync(POSTS_DIR)) {
-    for (const file of fs.readdirSync(POSTS_DIR)) {
-      if (file.endsWith('.md')) {
-        fs.unlinkSync(path.join(POSTS_DIR, file))
-      }
-    }
-  } else {
+  if (!fs.existsSync(POSTS_DIR)) {
     fs.mkdirSync(POSTS_DIR, { recursive: true })
   }
+
+  const notionSlugs = new Set<string>()
+  const stats = { added: 0, updated: 0, removed: 0, unchanged: 0 }
 
   for (const page of response.results) {
     const meta: PostMeta = {
@@ -81,7 +77,7 @@ async function syncNotionToMarkdown() {
       continue
     }
 
-    console.log(`Syncing: ${meta.title} → content/posts/${meta.slug}.md`)
+    notionSlugs.add(meta.slug)
 
     const mdBlocks = await n2m.pageToMarkdown(page.id)
     const mdString = n2m.toMarkdownString(mdBlocks)
@@ -97,10 +93,40 @@ async function syncNotionToMarkdown() {
     ].join('\n')
 
     const fileContent = `${frontmatter}\n\n${body.trim()}\n`
-    fs.writeFileSync(path.join(POSTS_DIR, `${meta.slug}.md`), fileContent)
+    const filePath = path.join(POSTS_DIR, `${meta.slug}.md`)
+
+    // Delta check: only write if content has changed
+    if (fs.existsSync(filePath)) {
+      const existing = fs.readFileSync(filePath, 'utf-8')
+      if (existing === fileContent) {
+        console.log(`  unchanged: ${meta.slug}.md`)
+        stats.unchanged++
+        continue
+      }
+      console.log(`  updated: ${meta.slug}.md`)
+      stats.updated++
+    } else {
+      console.log(`  added: ${meta.slug}.md`)
+      stats.added++
+    }
+
+    fs.writeFileSync(filePath, fileContent)
   }
 
-  console.log('Sync complete.')
+  // Remove posts that are no longer published in Notion
+  for (const file of fs.readdirSync(POSTS_DIR)) {
+    if (!file.endsWith('.md')) continue
+    const slug = file.replace('.md', '')
+    if (!notionSlugs.has(slug)) {
+      console.log(`  removed: ${file}`)
+      fs.unlinkSync(path.join(POSTS_DIR, file))
+      stats.removed++
+    }
+  }
+
+  console.log(
+    `\nSync complete — added: ${stats.added}, updated: ${stats.updated}, removed: ${stats.removed}, unchanged: ${stats.unchanged}`,
+  )
 }
 
 syncNotionToMarkdown().catch((err) => {
