@@ -20,7 +20,7 @@
   --color-pre-bg: rgba(0, 0, 0, 0.6);
   --color-pre-border: rgba(255, 255, 255, 0.06);
   --color-icon-bg: rgba(255, 255, 255, 0.05);
-  --starfield-opacity: 1;
+  --starfield-opacity: 0;
   --star-color: 200, 200, 220;
 }
 
