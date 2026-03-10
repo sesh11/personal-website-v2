@@ -7,14 +7,21 @@ export default function BlogPage() {
   const posts = getAllPostSummaries()
 
   return (
-    <div className="max-w-[1200px] mx-auto px-5 py-5">
+    <div className="max-w-2xl mx-auto px-6 pt-24 pb-12">
       <Header />
 
-      <main className="mb-24">
-        <h1 className="text-5xl font-normal my-8">POSTS</h1>
+      <main className="mb-16">
+        <h1
+          className="text-2xl font-light mb-8"
+          style={{ color: 'var(--color-heading)' }}
+        >
+          Posts
+        </h1>
 
         {posts.length === 0 ? (
-          <p className="text-text-muted text-center py-4">No posts yet.</p>
+          <p style={{ color: 'var(--color-text-muted)' }} className="text-center py-4 text-sm">
+            No posts yet.
+          </p>
         ) : (
           <div>
             {posts.map((post) => (
