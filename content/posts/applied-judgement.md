@@ -2,7 +2,7 @@
 title: "Applied Judgement"
 date: "2026-01-31"
 summary: ""
-tags: ["engineering", "leadership", "ai"]
+tags: ["engineering", "ai"]
 ---
 
 The ability to reason, perform complex analysis, and write code is now available on demand. The incremental cost of building software is tending to zero. We have said this for years but with Opus 4.5 and GPT 5.2, the models have crossed a threshold. The harnesses built around them have amplified what they can do. We are past the event horizon. These are not incremental improvements to existing workflows. They represent a structural change in what’s possible and what’s valuable.

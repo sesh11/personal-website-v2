@@ -2,7 +2,7 @@
 title: "Why software engineering needs a fundamental rethink?"
 date: "2026-03-09"
 summary: ""
-tags: ["engineering", "leadership", "ai"]
+tags: ["engineering", "ai"]
 ---
 
 The way software gets built has not fundamentally changed. Requirements are gathered, code is written, tested, deployed, and issues are fixed as they surface. Software development, at its core, is a coordination system. It's performance depends on how effectively intent, context, and decisions move through the system. The coordination models hit rate limits as complexity increases and over time you are constrained by something more than technical complexity. This is what makes AI consequential.

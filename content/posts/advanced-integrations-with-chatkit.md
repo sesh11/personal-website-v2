@@ -67,7 +67,7 @@ This list is by no means comprehensive but illustrative of the strategic imperat
 **High-level architecture of the incident management system on Custom ChatKit**
 
 
-![https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fefce9ddc-61ea-44ba-803c-5ccc77fdb6b5_1450x368.png](https://substackcdn.com/image/fetch/$s_!8Bvx!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fefce9ddc-61ea-44ba-803c-5ccc77fdb6b5_1450x368.png)
+![https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fefce9ddc-61ea-44ba-803c-5ccc77fdb6b5_1450x368.png](/images/posts/advanced-integrations-with-chatkit/1b1fa7a32554.png)
 
 
 This implementation architecture addresses three key architectural controls that are needed in enterprises, especially in regulated industries:
