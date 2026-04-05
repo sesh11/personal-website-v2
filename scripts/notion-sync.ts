@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
+import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
@@ -9,6 +10,48 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY })
 const n2m = new NotionToMarkdown({ notionClient: notion })
 
 const POSTS_DIR = path.join(process.cwd(), 'content', 'posts')
+const IMAGES_DIR = path.join(process.cwd(), 'public', 'images', 'posts')
+
+async function downloadImage(
+  url: string,
+  slug: string,
+): Promise<{ localPath: string; filename: string } | null> {
+  try {
+    const urlObj = new URL(url)
+    const pathOnly = urlObj.origin + urlObj.pathname
+    const hash = crypto.createHash('sha256').update(pathOnly).digest('hex').slice(0, 12)
+
+    const ext = path.extname(urlObj.pathname).toLowerCase() || '.png'
+    const filename = `${hash}${ext}`
+
+    const slugDir = path.join(IMAGES_DIR, slug)
+    const filePath = path.join(slugDir, filename)
+
+    if (fs.existsSync(filePath)) {
+      return { localPath: `/images/posts/${slug}/${filename}`, filename }
+    }
+
+    fs.mkdirSync(slugDir, { recursive: true })
+
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(15000),
+    })
+
+    if (!response.ok) {
+      console.warn(`  warning: failed to download image (${response.status}): ${pathOnly}`)
+      return null
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer())
+    fs.writeFileSync(filePath, buffer)
+    console.log(`  downloaded: ${filename}`)
+
+    return { localPath: `/images/posts/${slug}/${filename}`, filename }
+  } catch (err) {
+    console.warn(`  warning: image download failed: ${err}`)
+    return null
+  }
+}
 
 interface PostMeta {
   title: string
@@ -79,9 +122,43 @@ async function syncNotionToMarkdown() {
 
     notionSlugs.add(meta.slug)
 
+    const currentPostImages = new Set<string>()
+
+    n2m.setCustomTransformer('image', async (block: any) => {
+      const imageBlock = block.image
+      const url = imageBlock?.file?.url || imageBlock?.external?.url
+      if (!url) return ''
+
+      const caption =
+        imageBlock.caption?.map((c: any) => c.plain_text).join('') ||
+        path.basename(new URL(url).pathname)
+
+      const result = await downloadImage(url, meta.slug)
+      if (result) {
+        currentPostImages.add(result.filename)
+        return `![${caption}](${result.localPath})`
+      }
+      return `![${caption}](${url})`
+    })
+
     const mdBlocks = await n2m.pageToMarkdown(page.id)
     const mdString = n2m.toMarkdownString(mdBlocks)
     const body = typeof mdString === 'string' ? mdString : mdString.parent
+
+    // Prune stale images for this post
+    const slugImageDir = path.join(IMAGES_DIR, meta.slug)
+    if (fs.existsSync(slugImageDir)) {
+      for (const file of fs.readdirSync(slugImageDir)) {
+        if (!currentPostImages.has(file)) {
+          fs.unlinkSync(path.join(slugImageDir, file))
+          console.log(`  pruned stale image: ${meta.slug}/${file}`)
+        }
+      }
+      // Remove directory if empty
+      if (fs.readdirSync(slugImageDir).length === 0) {
+        fs.rmdirSync(slugImageDir)
+      }
+    }
 
     const frontmatter = [
       '---',
@@ -120,6 +197,12 @@ async function syncNotionToMarkdown() {
     if (!notionSlugs.has(slug)) {
       console.log(`  removed: ${file}`)
       fs.unlinkSync(path.join(POSTS_DIR, file))
+      // Also remove the post's image directory
+      const slugImageDir = path.join(IMAGES_DIR, slug)
+      if (fs.existsSync(slugImageDir)) {
+        fs.rmSync(slugImageDir, { recursive: true })
+        console.log(`  removed images: ${slug}/`)
+      }
       stats.removed++
     }
   }
