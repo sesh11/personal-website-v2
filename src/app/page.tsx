@@ -26,22 +26,13 @@ export default function HomePage() {
             style={{ color: 'var(--color-text)' }}
           >
             <p>
-              Hi, I&rsquo;m Nithin.
-            </p>
-            <p>
-              Thanks for taking the time to visit my website. I build systems, teams, and ideas.
+              Hi, I&rsquo;m Nithin. Thanks for taking the time to visit my website. My work sits at the intersection of engineering leadership and hands-on building. I&rsquo;ve spent my career architecting systems that operate at enterprise scale and solving hard operational problems where precision matters.
             </p>
             <p>
               We are living through one of the most exciting moments to build. AI has changed how I work, learn, and think. Knowing how to use it well is becoming a foundational skill, and that starts with building the right intuitions.
             </p>
             <p>
-              My work sits at the intersection of engineering leadership and hands-on building. I&rsquo;ve spent my career architecting systems that operate at enterprise scale and solving hard operational problems where precision matters. Today, I&rsquo;m focused on AI in healthcare, especially how to apply language models and decision systems in ways that are practical, rigorous, and useful.
-            </p>
-            <p>
-              My background is in industrial engineering, operations research, and decision science. That foundation shapes how I think. I care about leverage, compounding, and designing systems that make better decisions over time. Increasingly, I&rsquo;m interested in systems that can build, improve, and evolve other systems.
-            </p>
-            <p>
-              This site is where I share what I&rsquo;m building, what I&rsquo;m learning, and how I&rsquo;m thinking.
+              Today, I&rsquo;m focused on AI in healthcare, especially how to apply language models and decision systems in ways that are practical, rigorous, and useful. My background is in industrial engineering, operations research, and decision science. That foundation shapes how I think. I care about leverage, compounding, and designing systems that make better decisions over time. Increasingly, I&rsquo;m interested in systems that can build, improve, and evolve other systems. This site is where I share what I&rsquo;m building, what I&rsquo;m learning, and how I&rsquo;m thinking.
             </p>
           </div>
         </section>
