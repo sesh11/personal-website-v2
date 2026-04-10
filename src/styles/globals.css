@@ -124,6 +124,30 @@ body {
   font-weight: 600;
 }
 
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.85em;
+}
+
+.prose th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-heading);
+  padding: 0.5em 0.75em;
+  border-bottom: 2px solid var(--color-card-border);
+}
+
+.prose td {
+  padding: 0.5em 0.75em;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.prose tr:last-child td {
+  border-bottom: none;
+}
+
 /* Theme toggle */
 .theme-toggle {
   opacity: 0.5;
