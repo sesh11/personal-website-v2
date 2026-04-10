@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Nithin Seshadri',
   description: "Nithin Seshadri's personal website",
   icons: {
-    icon: '/ns1.ico',
+    icon: '/favicon.svg',
   },
 }
 
