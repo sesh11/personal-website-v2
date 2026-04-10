@@ -53,6 +53,24 @@ async function downloadImage(
   }
 }
 
+function cleanMarkdown(md: string): string {
+  let cleaned = md
+
+  // Strip italic markers around inline code: _`code`_ → `code`
+  cleaned = cleaned.replace(/_`([^`]+)`_/g, '`$1`')
+
+  // Fix underscore-wrapped URLs in markdown links: ](_url_) → ](url)
+  cleaned = cleaned.replace(/\]\(_([^)]+)_\)/g, ']($1)')
+
+  // Fix broken link pattern: (h[ttps://...](https://...)) → [https://...](https://...)
+  cleaned = cleaned.replace(/\(h\[ttps:\/\/([^\]]+)\]\((https:\/\/[^)]+)\)\)/g, '[$2]($2)')
+
+  // Collapse 3+ consecutive newlines into 2
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
+
+  return cleaned
+}
+
 interface PostMeta {
   title: string
   slug: string
@@ -143,7 +161,8 @@ async function syncNotionToMarkdown() {
 
     const mdBlocks = await n2m.pageToMarkdown(page.id)
     const mdString = n2m.toMarkdownString(mdBlocks)
-    const body = typeof mdString === 'string' ? mdString : mdString.parent
+    const rawBody = typeof mdString === 'string' ? mdString : mdString.parent
+    const body = cleanMarkdown(rawBody)
 
     // Prune stale images for this post
     const slugImageDir = path.join(IMAGES_DIR, meta.slug)
