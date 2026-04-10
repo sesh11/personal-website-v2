@@ -23,7 +23,7 @@ The methodology also includes an append-only ledger that tracks every discovery,
 
 Note: Every phase and writing-up the key findings was done by Claude Code. My role here was to design the methodology, set the reading order, define the research vectors, and validate the outputs. 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/30cc5ce9c2c8.png)
+![image.png](/images/posts/experiment-bounded-migration/30cc5ce9c2c8.png)
 
 ### Phase 1: Context Seeding
 
@@ -39,7 +39,18 @@ Every source file in every subsystem was read exhaustively in the order prioriti
 
 Reading order and rationale below: 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/07d643b3fb5b.png)
+| **#** | **Subsystem**                                                          | **Files** | **Lines**   | **Rationale**                                                                                                                                        |
+| ----- | ---------------------------------------------------------------------- | --------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | **REWRITEPlatform Interface**i_video.c, i_sound.c, i_net.c, i_system.c | 10        | ~2,700      | Primary rewrite target. Every platform-specific function lives here — this is the firewall between the engine and the OS.                            |
+| 2     | **CRITICAL PATHGame Loop**d_main.c, d_net.c, g_game.c                  | 6         | ~3,600      | Main execution path frames everything. Understanding the loop from `main()` → `D_DoomMain()` → `D_DoomLoop()` is prerequisite to all other analysis. |
+| 3     | **HIGHRenderer**r_main.c, r_bsp.c, r_draw.c, r_plane.c, v_video.c      | 20        | ~6,300      | Primary consumer of the video subsystem. BSP traversal, column rendering, visplanes — must understand what the platform layer serves.                |
+| 4     | **HIGHMemory Management**z_zone.c, z_zone.h                            | 2         | ~550        | Custom allocator used by everything. Zone memory has pointer arithmetic that's 64-bit sensitive.                                                     |
+| 5     | **MEDIUMWAD System**w_wad.c, w_wad.h, m_swap.c                         | 3         | ~850        | Data loading pipeline. WAD struct layout has pointer fields that drift on 64-bit — a key gap we discovered.                                          |
+| 6     | **LOWGameplay**p_map.c, p_mobj.c, p_enemy.c, p_setup.c ...             | 22        | ~14,000     | Largest subsystem, lowest port priority. Thinker list, map objects, physics — all platform-independent.                                              |
+| 7     | **STUBSound**s_sound.c, sounds.c, i_sound.c                            | 4         | ~1,200      | Will be stubbed initially. Document the interface contract so a real implementation can be added later.                                              |
+| 8     | **UNCHANGEDUI**hu_stuff.c, st_stuff.c, am_map.c, wi_stuff.c, m_menu.c  | 18        | ~9,500      | Status bar, HUD, automap, intermission, menus — should work unchanged since they write to the framebuffer, not the platform.                         |
+| 9     | **SCANCross-Cutting**all .c/.h files — globals, #ifdefs, includes      | 70+       | ~30,000     | Full-codebase scan for extern globals, conditional compilation, system headers. Produces the complete platform dependency inventory.                 |
+|       | **Total**                                                              | **155+**  | **~68,700** | **9 subsystems documented across 7 iterations**                                                                                                      |
 
 Each subsystem read was informed by what previous reads had established. Reading the platform interface first meant that when the game loop analysis encountered `I_StartTic()` → `D_PostEvent()` → `G_BuildTiccmd()`, the complete input pipeline was already understood. 
 
@@ -55,7 +66,7 @@ Building on top of Phase 2, Phase 3 focuses on building three key synthesis docu
 
 The architecture is a strict DAG. The game loop is the hub which depends on everything else. All sub-systems flow down through shared services (zone memory, WAD loading, trig tables) to the interface.
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/8b766fd43e3d.png)
+![image.png](/images/posts/experiment-bounded-migration/8b766fd43e3d.png)
 
 Call Chain
 
@@ -73,29 +84,75 @@ Every platform-specific item tagged with file, line number, severity, and prescr
 
 Section 1: System Headers
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/599b1a237d6d.png)
+| **Header**                                                                   | **Files**            | **Action**                            |
+| ---------------------------------------------------------------------------- | -------------------- | ------------------------------------- |
+| `<X11/Xlib.h>`, `<X11/Xutil.h>`, `<X11/keysym.h>`, `<X11/extensions/XShm.h>` | i_video.c            | **REMOVE** Replaced by `<SDL.h>`      |
+| `<linux/soundcard.h>`, `<sys/ioctl.h>`                                       | i_sound.c            | **REMOVE** Sound stubbed              |
+| `<values.h>`                                                                 | doomtype.h, m_bbox.h | **REPLACE** `<limits.h>`              |
+| `<malloc.h>`                                                                 | w_wad.c              | **REPLACE** `<stdlib.h>`              |
+| `<alloca.h>`                                                                 | w_wad.c, r_data.c    | **REPLACE** `<stdlib.h>`              |
+| `<errnos.h>`                                                                 | i_video.c            | **FIX TYPO** → `<errno.h>`            |
+| `<unistd.h>`, `<sys/socket.h>`, `<netinet/in.h>`                             | Various              | **NO CHANGE** POSIX, macOS-compatible |
 
 Section 2: X11 API Calls (25+ functions in i_video.c)*
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/d74492213d33.png)
+| **X11 Function**                      | **SDL2 Equivalent**                        |
+| ------------------------------------- | ------------------------------------------ |
+| `XOpenDisplay()`                      | `SDL_Init()` + `SDL_CreateWindow()`        |
+| `XCreateWindow()`                     | `SDL_CreateWindow()`                       |
+| `XCreateImage()`, `XShmCreateImage()` | `SDL_CreateTexture()`                      |
+| `XPutImage()`, `XShmPutImage()`       | `SDL_UpdateTexture()` + `SDL_RenderCopy()` |
+| `XStoreColors()`, `XCreateColormap()` | `SDL_SetPaletteColors()`                   |
+| `XNextEvent()`, `XPending()`          | `SDL_PollEvent()`                          |
+| `XKeycodeToKeysym()`                  | SDL2 events include `SDL_Keycode`          |
+| `XGrabPointer()`                      | `SDL_SetRelativeMouseMode()`               |
+| `XWarpPointer()`                      | `SDL_WarpMouseInWindow()`                  |
+| `XSync()`                             | `SDL_RenderPresent()`                      |
 
 Section 3: 64-bit Pointer/Integer Hazards (20+ locations across 8 files)
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/75a610c9072d.png)
+| **File**                | **Pattern**                            | **Severity** | **Fix**                         |
+| ----------------------- | -------------------------------------- | ------------ | ------------------------------- |
+| `m_misc.c`defaults[]    | `(int*) &string_var`, `(int) "string"` | **CRITICAL** | `void*` + `intptr_t`            |
+| `p_saveg.c`10+ sites    | `(int)mobj->state`, `(int)sector`      | **CRITICAL** | `(intptr_t)`                    |
+| `r_data.c`lines 482-488 | `Z_Malloc(numtextures*4)`              | **CRITICAL** | `*sizeof(type*)`                |
+| `p_setup.c`line 536     | `Z_Malloc(total*4)`                    | **HIGH**     | `*sizeof(line_t*)`              |
+| `r_data.c`line 642      | `(int)colormaps` for alignment         | **HIGH**     | `(uintptr_t)`                   |
+| `r_draw.c`line 464      | `(int)translationtables`               | **HIGH**     | `(uintptr_t)`                   |
+| `d_net.c`lines 92, 110  | `(int)&(((type*)0)->field)`            | **MODERATE** | `offsetof()`                    |
+| `z_zone.c`line 440      | `(unsigned)block->user`                | **MODERATE** | `(uintptr_t)`                   |
+| `i_net.c`lines 55-66    | Custom `ntohl` / `htonl` macros        | **LOW**      | Remove, use system              |
+| `d_main.c`line 1122     | `(void*)atoi(...)`                     | **LOW**      | `(void*)(uintptr_t)strtol(...)` |
 
 Section 4: Build System
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/52a3ae07b79b.png)
+| **Element**  | **Linux (Original)**     | **macOS / SDL2 (Target)**                    |
+| ------------ | ------------------------ | -------------------------------------------- |
+| **Compiler** | `gcc`                    | `cc` (clang)                                 |
+| **CFLAGS**   | `-DNORMALUNIX -DLINUX`   | `-DNORMALUNIX $(shell sdl2-config --cflags)` |
+| **LDFLAGS**  | `-L/usr/X11R6/lib`       | (removed)                                    |
+| **LIBS**     | `-lXext -lX11 -lnsl -lm` | `$(shell sdl2-config --libs) -lm`            |
+| **Objects**  | `i_video.o`, `i_sound.o` | `i_video_sdl.o`, `i_sound_stub.o`            |
+| **Target**   | `linux/linuxxdoom`       | `macos/doomsdl`                              |
 
 Section 5: File Level Impact Summary
 
 **Configuration Catalog:** 38 command-line arguments, 41 config file entries, 5 build-time symbols, all renderer/gameplay constants, and the complete `defaults[]` table structure with its critical 64-bit bug documented.
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/f6d34ccbf2cc.png)
+| **Category**                | **Count** | **Notes**                                                 |
+| --------------------------- | --------- | --------------------------------------------------------- |
+| Command-line arguments      | 38        | Parsed via `M_CheckParm()`                                |
+| Config file entries         | 41        | `default.cfg` via `defaults[]` table                      |
+| Build-time symbols          | 5         | `NORMALUNIX`, `LINUX`, `SNDSERV`, `SNDINTR`, `RANGECHECK` |
+| Renderer/gameplay constants | —         | Screen dimensions, tic rate, fixed-point scale            |
 
 **Data Tables Catalog:** Documentation of the three large data files: `info.c` (3-layer entity data model: 170 sprites, 967 states, 137 entity types), `tables.c` (3 trig LUTs: finetangent[4096], finesine[10240], tantoangle[2049]), and `sounds.c` (68 music definitions, 109 sound effects). All three compile unchanged on macOS 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/d4d7da968dcb.png)
+| **File**                | **Contents**                                                              | **Port Impact** |
+| ----------------------- | ------------------------------------------------------------------------- | --------------- |
+| `info.c` / `info.h`     | 3-layer entity data model: 170 sprites, 967 states, 137 entity types      | **UNCHANGED**   |
+| `tables.c` / `tables.h` | 3 trig LUTs: `finetangent[4096]`, `finesine[10240]`, `tantoangle[2049]`   | **UNCHANGED**   |
+| `sounds.c` / `sounds.h` | 68 music definitions, 109 sound effects with priority/link/pitch metadata | **UNCHANGED**   |
 
 Outputs are in compound-engineering/catalogs/
 
@@ -115,23 +172,71 @@ _At the time of writing this, Karpathy dropped the concept of the “idea file�
 
 Five build orders, each referencing specific artifacts from Phases 1-6:
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/28eb0320035c.png)
+| **Build Order**            | **Scope**                                                 | **Key References**                                | **Predicted Changes**                             |
+| -------------------------- | --------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| **BO-001** Build System    | Makefile.macos, header fixes, stub files                  | **platform-deps §4** **configurations §1**        | 7 build changes5 header fixes                     |
+| **BO-002** Video Subsystem | `i_video_sdl.c` — SDL2 window, framebuffer, palette       | **interface-contracts §I** **platform-deps §2**   | 14 implementation itemsFull X11→SDL2 rewrite      |
+| **BO-003** 64-bit Compat   | All `(int)pointer` casts, `*4` allocations, `long` fields | **platform-deps §3** **cross-cutting §5**         | 13 priority-ranked fixesAcross 8 files            |
+| **BO-004** Input Handling  | SDL2 keyboard/mouse in `i_video_sdl.c`                    | **interface-contracts §II** **configurations §4** | Key mapping tableMouse events                     |
+| **BO-005** Integration     | Wire together, first boot, debug                          | **call-chains** **dependency-map**                | Test sequence definedBoot → render → input → play |
 
-The concept of the build order is inspired by 8090’s [Software Factory](https://www.8090.ai/docs/modules/planner) and [Missions](https://factory.ai/news/missions) from Factory
+Each build order contains explicit predictions: what files change, what the changes are, and what the expected failure modes are. These predictions are what made the methodology scorable. The concept of the build order is inspired by 8090’s [Software Factory](https://www.8090.ai/docs/modules/planner) and [Missions](https://factory.ai/news/missions) from Factory
 
 ## Results
 
 After implementation, every code change was scored against the documentation. The retroactive scoring counted every distinct change individual across all the files. 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/5dd610f5bd69.png)
+| **Scoring Method**                        | **Count** | **Percentage** | **Meaning**                                 |
+| ----------------------------------------- | --------- | -------------- | ------------------------------------------- |
+| **A** Explicitly predicted                | 89        | 74%            | Docs named file + issue + fix               |
+| **B** Info existed, action not prescribed | 10        | 8%             | Docs had the fact, didn't say "change this" |
+| **C** Completely unpredicted              | 22        | 18%            | No document anticipated this                |
+| **Total**                                 | **121**   | **100%**       |                                             |
+| Strict accuracy (A only)                  |           | **74%**        |                                             |
+| Moderate accuracy (A+B)                   |           | **82%**        |                                             |
 
 I earlier reported 64% as the accuracy based on the initial scoring pass that counted broad categories as single predictions ("10 chat macro casts" = 1 prediction, "7 Z_Malloc fixes" = 1 prediction). The retroactive granular scoring is provides a better representation. 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/50689a57c1b2.png)
+| **File**                 | **Total** | **A**  | **B**  | **C**  | **Strict %** |
+| ------------------------ | --------- | ------ | ------ | ------ | ------------ |
+| `Makefile.macos` _(new)_ | 7         | 7      | 0      | 0      | 100%         |
+| `i_video_sdl.c` _(new)_  | 14        | 11     | 2      | 1      | 79%          |
+| `i_sound_stub.c` _(new)_ | 8         | 7      | 0      | 1      | 88%          |
+| `am_map.c`               | 5         | 0      | 0      | 5      | 0%           |
+| `d_main.c`               | 1         | 1      | 0      | 0      | 100%         |
+| `d_net.c`                | 3         | 2      | 0      | 1      | 67%          |
+| `d_net.h`                | 1         | 0      | 1      | 0      | 0%           |
+| `doomdef.h`              | 1         | 0      | 0      | 1      | 0%           |
+| `doomtype.h`             | 7         | 7      | 0      | 0      | 100%         |
+| `i_net.c`                | 2         | 2      | 0      | 0      | 100%         |
+| `i_system.c`             | 1         | 0      | 0      | 1      | 0%           |
+| `info.h`                 | 3         | 0      | 3      | 0      | 0%           |
+| `m_bbox.h`               | 2         | 1      | 0      | 1      | 50%          |
+| `m_misc.c`               | 31        | 24     | 2      | 5      | 77%          |
+| `m_swap.c/h`             | 3         | 0      | 0      | 3      | 0%           |
+| `p_saveg.c`              | 12        | 10     | 1      | 1      | 83%          |
+| `p_setup.c`              | 1         | 1      | 0      | 0      | 100%         |
+| `r_data.c`               | 14        | 12     | 0      | 2      | 86%          |
+| `r_draw.c`               | 1         | 1      | 0      | 0      | 100%         |
+| `s_sound.c`              | 1         | 0      | 0      | 1      | 0%           |
+| `tables.h`               | 2         | 0      | 1      | 1      | 0%           |
+| `w_wad.c`                | 2         | 2      | 0      | 0      | 100%         |
+| `z_zone.c`               | 1         | 1      | 0      | 0      | 100%         |
+| **Totals**               | **121**   | **89** | **10** | **22** | **74%**      |
 
 **Unpredicted changes**
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/2c3e6a1731f7.png)
+| **Gap**                           | **Count** | **Changes**                                   | **Root Cause**                                              |
+| --------------------------------- | --------- | --------------------------------------------- | ----------------------------------------------------------- |
+| Gap 1: Binary struct layout drift | 1         | `maptexture_t` `void**` → `int`               | Catalog tracked casts, not struct fields in on-disk formats |
+| Gap 2: Cascading code changes     | 3         | `M_SaveDefaults`/`M_LoadDefaults` rewrites    | Struct change prescribed, usage sites not traced            |
+| Gap 3: C99 compiler compliance    | 5         | `am_map.c` implicit int declarations          | K&R patterns not in scan categories                         |
+| Gap 4: `long` as LP64 hazard      | 3         | `m_swap.c/h` `unsigned long` → `unsigned int` | Catalog tracked `long` in MAXLONG context only              |
+| Gap 6: Mechanical dependencies    | 4         | `#include <stdint.h>`, `<stddef.h>` additions | Prescribed type changes didn't list required headers        |
+| Original source bugs              | 2         | VERSION 110→109, SNDSRV→SNDSERV typo          | Not porting issues — bugs in id Software's code             |
+| Runtime tuning                    | 2         | `mb_used` 6→16 MB                             | Empirical, not derivable from static analysis               |
+| Miscellaneous                     | 2         | `-grabmouse` argument, `M_PI` constant        | Edge cases                                                  |
+| **Total unpredicted**             | **22**    |                                               |                                                             |
 
 **Failure Points**
 
@@ -155,7 +260,16 @@ The platform dependency catalog's summary section, which synthesized across all 
 
 This is a really interesting observation. Each of the failure points here didn’t have a specific vector that looked for this information during the earlier phases. For e.g., the summary said am_map.c was unchanged because no scan category existed for K&R implicit int patterns. It said m_swap.c/h was unchanged because no scan category existed for long as a general LP64 hazard. The is a systemic failure where 8 files were misclassified and each downstream artifact inherited those gaps. 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/d0befaea33d7.png)
+| **File**     | **Summary Claim** | **Actual**                                 |
+| ------------ | ----------------- | ------------------------------------------ |
+| `am_map.c`   | Unchanged         | **WRONG** 5 implicit int fixes needed      |
+| `m_swap.c/h` | Unchanged         | **WRONG** `unsigned long` → `unsigned int` |
+| `d_main.c`   | Unchanged         | **WRONG** Contradicts own §3               |
+| `d_net.c`    | Unchanged         | **WRONG** Contradicts own §3               |
+| `info.h`     | Not Mentioned     | **MISSED** `long` → `int` in state_t       |
+| `d_net.h`    | Not Mentioned     | **MISSED** `long` → `int` in doomcom_t     |
+| `i_system.c` | Not Mentioned     | **MISSED** `mb_used` change                |
+| `tables.h`   | Not Mentioned     | **MISSED** `#ifdef LINUX` removal          |
 
 There are some lessons to be gained from this. 
 
@@ -226,7 +340,7 @@ This study is tilted toward refactoring and platform migration and not building 
 
 The intent here is not to present a completed framework. It's to show the shape of the problem and think through what needs to be true to start the journey toward autonomous software engineering. 
 
-![image.png](/images/posts/doom-port-autonomous-software-engineering/ff061c315c6d.png)
+![image.png](/images/posts/experiment-bounded-migration/ff061c315c6d.png)
 
 All artifacts, documentation, ledger entries, and scored predictions are available on [GitHub](https://github.com/sesh11/doom).
 
@@ -251,4 +365,6 @@ The renderer visits the player side first and draws the subsectors in front-to-b
 **The perspective formula:** Once the rendered know which columns the seg covers, it needs to figure out two things: how tall to draw the wall and what to fill it with? 
 For the height, the perpendicular distance from the wall is calculated and then does a (160/distance). The 160 is because it’s half of 320 given that DOOM was intended to run at a 320X200 pixel configuration. This is the perspective effect. 
 Now let’s talk about the color. Each seg knows which wall texture it uses. The textures are images stored in the WAD as columns of palette indices. Each pixel is a number from 0 to 255. For a given screen column , the renderer figures out which vertical slice of the texture corresponding to the column. There are 34 pre-computed colormaps. Colormap 0 is full brightness, Colormap 1 is slightly darker etc. The renderer which color map to use based on the distance to the wall. The computation is just reading from a different table. 
-Everything until now is in the context of a palette index space. The framebuffer, which is 64,000 bytes contains only indices. The palette is a separate 768-byte table (256 colors X 3 bytes for red, green, and blue). Once the frame is done, it reads each of the 64,000 index bytes, lookups the RGB color in the palette, and sends that to the display. The game itself has multiple palettes and just changes the lookup against a different palette keeping the framebuffer intact. In essence, the pipeline is simple: One pixel → Texture (which index?) → Colormap (darken based on distance) → framebuffer (store final index) → palette (convert index to actual color). **Three sets of lookups and one write.**
+Everything until now is in the context of a palette index space. The framebuffer, which is 64,000 bytes contains only indices. The palette is a separate 768-byte table (256 colors X 3 bytes for red, green, and blue). Once the frame is done, it reads each of the 64,000 index bytes, lookups the RGB color in the palette, and sends that to the display. The game itself has multiple palettes and just changes the lookup against a different palette keeping the framebuffer intact. In essence, the pipeline is simple: One pixel → Texture (which index?) → Colormap (darken based on distance) → framebuffer (store final index) → palette (convert index to actual color). **Three sets of lookups and one write.** 
+
+---
