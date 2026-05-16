@@ -1,5 +1,5 @@
 ---
-title: "Where the agent stack is settling"
+title: "Beyond Agents: Where the Stack Is Settling And Why Systems Matter More"
 date: "2026-05-16"
 summary: ""
 tags: ["ai", "leadership"]
