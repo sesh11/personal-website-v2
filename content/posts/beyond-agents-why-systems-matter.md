@@ -125,28 +125,17 @@ For enterprises, the implication is simple. The advantage will not come from dep
 
 ## References
 
-**On the harness**
-
 - [The Anatomy of an Agent Harness](https://x.com/Vtrivedy10/status/2031408954517971368) — Viv Trivedi, LangChain
 - [Harnessing Claude's Intelligence: 3 Key Patterns for Building Apps](https://claude.com/blog/harnessing-claudes-intelligence) — Anthropic
 - [Thin Harness, Fat Skills](https://x.com/garrytan/status/2042925773300908103) — Garry Tan
 - [Your Harness, Your Memory](https://x.com/hwchase17/status/2042978500567609738) — Harrison Chase, LangChain
 - [Why Memory Isn't a Plugin (It's the Harness)](https://x.com/sarahwooders/status/2040121230473457921) — Sarah Wooders, Letta
-
-**On memory and filesystem**
-
 - [Using Agent Memory](https://platform.claude.com/docs/en/managed-agents/memory) — Anthropic Managed Agents documentation
 - [Memory in Claude Managed Agents](https://x.com/RLanceMartin/status/2047720067107033525) — Lance Martin, LangChain
 - [How we built a virtual filesystem for our Assistant](https://www.mintlify.com/blog/how-we-built-a-virtual-filesystem-for-our-assistant) — Dens Sumesh, Mintlify
-
-**On building in-house at enterprise scale**
-
 - [Minions: Stripe's one-shot, end-to-end coding agents (Part 1)](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents) — Stripe Engineering
 - [Minions: Stripe's one-shot, end-to-end coding agents (Part 2)](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents-part-2) — Stripe Engineering
 - [Why We Built Our Own Background Agent](https://builders.ramp.com/post/why-we-built-our-background-agent) — Zach Bruggeman, Jason Quense, Rahul Sengottuvelu, Ramp
-
-**On lock-in, governance, and identity**
-
 - [Anthropic sees the moat. Do you?](https://x.com/JayaGup10/status/2042401200109408681) — Jaya Gupta
 - [The AI Lock-In Is Beginning!](https://x.com/JayaGup10/status/2043505841127760066) — Jaya Gupta
 - [Microsoft Entra Security for AI Overview](https://learn.microsoft.com/en-us/entra/agent-id/security-for-ai-overview) — Microsoft Learn
